@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>مصاريفي</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="مصاريفي">
+<meta name="theme-color" content="#ECEFEA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1411" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+:root{
+  --bg:#ECEFEA; --surface:#FFFFFF; --key:#F8FAF7; --key-press:#DDE5DF;
+  --ink:#15201B; --muted:#6A7870; --line:#D5DCD6;
+  --accent:#0C7A62; --accent-ink:#FFFFFF; --accent-soft:#D6EDE6;
+  --danger:#B3402E; --bar:#0C7A62; --bar-bg:#E3E9E4;
+  --shadow:0 1px 0 rgba(21,32,27,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1411; --surface:#18201C; --key:#1D2621; --key-press:#2A3630;
+    --ink:#E5EDE8; --muted:#8C9C93; --line:#2A3530;
+    --accent:#35C49F; --accent-ink:#06231A; --accent-soft:#163A30;
+    --danger:#F08A76; --bar:#35C49F; --bar-bg:#24302A;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1411; --surface:#18201C; --key:#1D2621; --key-press:#2A3630;
+  --ink:#E5EDE8; --muted:#8C9C93; --line:#2A3530;
+  --accent:#35C49F; --accent-ink:#06231A; --accent-soft:#163A30;
+  --danger:#F08A76; --bar:#35C49F; --bar-bg:#24302A;
+  --shadow:none;
+}
+html,body{height:100%;margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Arabic","Geeza Pro","Segoe UI",Tahoma,system-ui,sans-serif;font-size:15px;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+#app{direction:rtl;height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto}
+main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px 16px 12px}
+.view{display:flex;flex-direction:column;gap:14px;min-height:100%}
+
+/* tab bar */
+nav.tabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.tabs button{background:none;border:0;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:12px;font-weight:500}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+
+/* entry */
+.entry{justify-content:flex-end}
+.today-line{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:13px}
+.today-line b{color:var(--ink);font-weight:600}
+.display{text-align:left;direction:ltr;padding:8px 4px 6px;border-bottom:1px solid var(--line)}
+.display .amt{font-size:clamp(44px,15vw,64px);font-weight:300;letter-spacing:-.02em;line-height:1.05;word-break:break-all}
+.display .amt.zero{color:var(--muted)}
+.display .cur{font-size:15px;color:var(--muted);margin-inline-start:6px;}
+.chips{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.chip{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px 9px;min-height:56px;display:flex;flex-direction:column;justify-content:center;gap:1px;box-shadow:var(--shadow);overflow:hidden}
+.chip .lbl{font-size:11px;color:var(--muted);letter-spacing:.02em}
+.chip .val{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip select,.chip input{position:absolute;inset:0;opacity:0;width:100%;height:100%;border:0;-webkit-appearance:none;appearance:none;font-size:16px}
+.chip:focus-within{border-color:var(--accent)}
+.notebox{width:100%;resize:none;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 12px;font-size:16px;line-height:1.5;box-shadow:var(--shadow);min-height:0}
+.notebox::placeholder{color:var(--muted)}
+.notebox:focus{outline:none;border-color:var(--accent)}
+.calc{display:grid;grid-template-columns:1fr auto 1fr auto 1.2fr;gap:6px;align-items:center}
+.cf{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 10px 7px;min-height:50px;display:flex;flex-direction:column;justify-content:center;gap:1px;text-align:right;box-shadow:var(--shadow)}
+.cf .lbl{font-size:11px;color:var(--muted)}
+.cf .val{font-weight:600;font-size:17px;min-height:1.3em}
+.cf .val.ph{color:var(--muted);font-weight:400}
+.cf[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.op{color:var(--muted);font-size:18px}
+.res{font-weight:600;font-size:17px;text-align:left;direction:ltr;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res.ph{color:var(--muted);font-weight:400}
+.display{cursor:pointer}
+.display .hint{display:block;font-size:13px;color:var(--muted);direction:rtl;text-align:left;min-height:1.2em}
+.display.active .amt{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:8px}
+.note-t{display:block;color:var(--ink);font-size:13px;margin-top:2px;white-space:pre-wrap;word-break:break-word}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;direction:ltr}
+.keypad button{background:var(--key);border:1px solid var(--line);border-radius:14px;height:clamp(48px,7.4vh,62px);font-size:26px;font-weight:400;box-shadow:var(--shadow);transition:background .08s}
+.keypad button:active{background:var(--key-press)}
+.keypad .fn{font-size:20px;color:var(--muted)}
+.save{background:var(--accent);color:var(--accent-ink);border:0;border-radius:14px;height:56px;font-size:18px;font-weight:700;transition:opacity .15s}
+.save:disabled{opacity:.35}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;direction:rtl}
+.toast.on{opacity:1}
+
+/* reports */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--bar-bg);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;border-radius:9px;padding:8px 0;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.period{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.period button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:18px;display:grid;place-items:center}
+.period button:disabled{opacity:.3}
+.period .pl{font-weight:600;font-size:16px;text-align:center}
+.total{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.total .k{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.total .v{font-size:36px;font-weight:400;direction:ltr;text-align:right}
+.total .v small{font-size:14px;color:var(--muted);}
+.total .sub{font-size:13px;color:var(--muted)}
+h2{font-size:13px;font-weight:600;color:var(--muted);margin:4px 2px -4px;letter-spacing:.02em}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 14px;border-bottom:1px solid var(--line);align-items:center;width:100%;text-align:right;background:none;border-inline:0;border-top:0}
+.row:last-child{border-bottom:0}
+button.row:active{background:var(--key-press)}
+.row .n{font-weight:600}
+.row .a{direction:ltr;font-weight:500}
+.row .meter{grid-column:1/-1;height:5px;background:var(--bar-bg);border-radius:3px;overflow:hidden}
+.row .meter i{display:block;height:100%;background:var(--bar);border-radius:3px}
+.row .m{font-size:12px;color:var(--muted)}
+.empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:14px}
+.item{display:grid;grid-template-columns:1fr auto auto;gap:2px 10px;padding:11px 14px;border-bottom:1px solid var(--line);align-items:center}
+.item:last-child{border-bottom:0}
+.item .m{grid-column:1;font-size:12px;color:var(--muted)}
+.item .a{grid-row:1/3;grid-column:2;direction:ltr;font-weight:500}
+.x{grid-row:1/3;grid-column:3;border:0;background:none;color:var(--muted);width:32px;height:32px;border-radius:8px;font-size:18px}
+.x.confirm{background:var(--danger);color:#fff;width:auto;padding:0 10px;font-size:13px;font-weight:600}
+
+/* chart */
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 12px 10px}
+.bars{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:120px;direction:rtl}
+.bars div{display:flex;flex-direction:column;justify-content:flex-end;height:100%;align-items:center;gap:4px}
+.bars i{display:block;width:100%;max-width:18px;background:var(--bar);border-radius:3px 3px 1px 1px;min-height:2px;opacity:.9}
+.bars i.dim{background:var(--bar-bg)}
+.bars i.cur{background:var(--ink)}
+.bars span{font-size:10px;color:var(--muted)}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(8,14,11,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet{background:var(--bg);width:100%;max-width:520px;max-height:88vh;max-height:88dvh;overflow-y:auto;border-radius:20px 20px 0 0;padding:10px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;direction:rtl}
+.sheet>*{flex-shrink:0}
+.sheet{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.view>*{flex-shrink:0}
+.dhead{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.dhead h3{margin:0;font-size:24px}
+.back{border:0;background:none;color:var(--accent);font-weight:600;font-size:16px;padding:4px 0}
+.verbar{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--accent-soft);border-radius:14px;padding:12px 14px;font-size:16px}
+.verbar b{font-size:18px}
+.upd{border:0;background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:8px 12px;font-weight:700;font-size:14px}
+.entry2{display:grid;grid-template-columns:31% 1fr;gap:10px;height:100%;min-height:0}
+.catcol{display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.cathead{font-size:12px;color:var(--muted);padding:9px 10px 7px;border-bottom:1px solid var(--line);font-weight:600}
+.catlist{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:flex;flex-direction:column}
+.catbtn{flex-shrink:0;border:0;border-bottom:1px solid var(--line);background:none;text-align:right;padding:12px 10px;font-size:15px;font-weight:500;line-height:1.3;word-break:break-word}
+.catbtn[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.catbtn.add{color:var(--accent);font-weight:700}
+.padcol{display:flex;flex-direction:column;gap:9px;min-height:0;min-width:0}
+.padcol>*{flex-shrink:0}
+.toprow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tchip{text-align:right;font:inherit;color:inherit}
+.tchip .lbl{font-size:10px}
+.calc2{display:grid;grid-template-columns:1fr auto 1.6fr;gap:6px;align-items:center}
+.cf.big .val{font-size:22px}
+.padcol .keypad{gap:7px;flex:1 1 auto;min-height:200px;max-height:380px;grid-template-rows:repeat(4,1fr);margin-top:auto}
+.padcol .keypad button{height:auto;min-height:46px;font-size:26px}
+.padcol .keypad .small{font-size:15px}
+.padcol .save{height:54px;font-size:18px}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+.sheet header{display:flex;justify-content:space-between;align-items:center}
+.sheet header h3{margin:0;font-size:20px}
+.close{border:0;background:var(--bar-bg);border-radius:50%;width:34px;height:34px;font-size:18px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pair .total .v{font-size:24px}
+
+/* settings */
+.addrow{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+.addrow input{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px;font-size:16px}
+.addrow button{border:0;background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:0 16px;font-weight:700}
+.srow{display:flex;align-items:center;gap:6px;padding:8px 10px 8px 6px;border-bottom:1px solid var(--line)}
+.srow input{flex:1;min-width:0;border:1px solid transparent;background:none;border-radius:8px;padding:7px 8px;font-size:16px;font-weight:500}
+.srow input:focus{border-color:var(--line);background:var(--bg);outline:none}
+.srow .x{grid-row:auto;grid-column:auto}
+.note{font-size:12px;color:var(--muted);line-height:1.7;padding:0 2px}
+.status{font-size:12px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+.btn2{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;font-weight:600;width:100%}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <main id="main"></main>
+  <nav class="tabs" id="tabs">
+    <button data-tab="entry" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7"/><circle cx="9" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="15" cy="12" r=".6" fill="currentColor"/><circle cx="9" cy="16" r=".6" fill="currentColor"/><circle cx="12" cy="16" r=".6" fill="currentColor"/><circle cx="15" cy="16" r=".6" fill="currentColor"/></svg>
+      إدخال</button>
+    <button data-tab="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M10 20V5M15 20v-7M20 20V9"/></svg>
+      تقارير</button>
+    <button data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      البنود والأنواع</button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+"use strict";
+const APP_VERSION = 8;
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf = new Intl.NumberFormat('ar-SA', {maximumFractionDigits: 2});
+const money = n => nf.format(Math.round(n * 100) / 100);
+const AR_DIG = '٠١٢٣٤٥٦٧٨٩';
+const arDigits = s => String(s).replace(/[0-9]/g, d => AR_DIG[d]);
+const pad = n => String(n).padStart(2, '0');
+const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const todayISO = () => iso(new Date());
+const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const fDay = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {weekday: 'long', day: 'numeric', month: 'long'});
+const fDayShort = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {day: 'numeric', month: 'short'});
+const fMonth = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {month: 'long', year: 'numeric'});
+const fMonthOnly = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', {month: 'long'});
+const MONTH_INIT = ['ينا','فبر','مار','أبر','ماي','يون','يول','أغس','سبت','أكت','نوف','ديس'];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+
+// ---------- state ----------
+const DEFAULT_SETTINGS = {
+  cats: ['بيت','سيارة','طعام','فواتير','صحة','ترفيه'].map((n, i) => ({id: 'c' + i, name: n})),
+  types: ['نقدي','بطاقة','تحويل'].map((n, i) => ({id: 't' + i, name: n}))
+};
+let settings = ls.get('m.settings', null) || structuredClone(DEFAULT_SETTINGS);
+let months = ls.get('m.months', {});     // { 'YYYY-MM': [ {id,a,c,t,d,ts} ] }
+const db = null, online = false;
+
+const ui = {
+  tab: 'entry',
+  amount: '',
+  note: '',
+  qty: '',
+  price: '',
+  field: 'price',
+  cat: ls.get('m.lastCat', null),
+  type: ls.get('m.lastType', null),
+  date: null,                 // null = today
+  rMode: 'day',               // day | month | year
+  rDate: todayISO(),
+  sheetCat: null,
+  pendingDel: null
+};
+
+const activeCats = () => settings.cats.filter(c => !c.archived);
+const activeTypes = () => settings.types.filter(t => !t.archived);
+const catName = id => (settings.cats.find(c => c.id === id) || {}).name || 'بند محذوف';
+const typeName = id => (settings.types.find(t => t.id === id) || {}).name || '—';
+function ensureSel() {
+  if (!activeCats().some(c => c.id === ui.cat)) ui.cat = activeCats()[0]?.id || null;
+  if (!activeTypes().some(t => t.id === ui.type)) ui.type = activeTypes()[0]?.id || null;
+}
+const allItems = () => Object.values(months).flat();
+
+// ---------- persistence ----------
+const queues = {};
+function enqueue(key, fn) {
+  const prev = queues[key] || Promise.resolve();
+  const next = prev.then(fn).catch(e => {
+    if (e && e.code === 'quota_exceeded') toast('المساحة ممتلئة، احذف بعض السجلات');
+    else if (e && e.code === 'unavailable') return new Promise(r => setTimeout(r, 800)).then(fn).catch(() => toast('تعذر الحفظ، سيعاد لاحقاً'));
+  });
+  queues[key] = next;
+  return next;
+}
+function saveSettings() {
+  ls.set('m.settings', settings);
+  if (db) enqueue('settings', () => db.doc('app/settings').set(structuredClone(settings)));
+}
+function saveMonth(m) {
+  ls.set('m.months', months);
+  if (db) enqueue('m' + m, () => db.doc('months/' + m).set({items: months[m] || []}));
+}
+
+// ---------- toast ----------
+let tt;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 1600); }
+
+// ---------- sums ----------
+const sum = arr => arr.reduce((s, i) => s + i.a, 0);
+function itemsIn(mode, dateStr) {
+  const all = allItems();
+  if (mode === 'day') return all.filter(i => i.d === dateStr);
+  if (mode === 'month') return all.filter(i => i.d.slice(0, 7) === dateStr.slice(0, 7));
+  return all.filter(i => i.d.slice(0, 4) === dateStr.slice(0, 4));
+}
+function byKey(items, key) {
+  const m = new Map();
+  items.forEach(i => m.set(i[key], (m.get(i[key]) || 0) + i.a));
+  return [...m.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+// ---------- render ----------
+function render() {
+  ensureSel();
+  document.querySelectorAll('#tabs button').forEach(b => { if (b.dataset.tab === ui.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  const main = $('#main');
+  const keepScroll = main.scrollTop;
+  if (ui.tab === 'entry') main.innerHTML = entryView();
+  else if (ui.tab === 'reports') main.innerHTML = ui.sheetCat ? detailView() : reportsView();
+  else main.innerHTML = settingsView();
+  if (ui.tab !== 'entry') main.scrollTop = keepScroll;
+  else { const cl = main.querySelector('.catlist'); if (cl) cl.scrollTop = ui.catScroll || 0; }
+  renderSheet();
+}
+
+const fmtIn = v => { const sh = v === '' ? '0' : v; const [i, f] = sh.split('.'); return arDigits(i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (f !== undefined ? '.' + f : '')).replace('.', '٫'); };
+const qtyOn = () => parseFloat(ui.qty) > 0;
+const calcOn = () => qtyOn() && parseFloat(ui.price) > 0;
+const effAmount = () => Math.round((parseFloat(ui.price) || 0) * (qtyOn() ? parseFloat(ui.qty) : 1) * 100) / 100;
+function entryView() {
+  const d = ui.date || todayISO();
+  const isToday = d === todayISO();
+  const total = effAmount();
+  const cats = activeCats();
+  const keys = ['1','2','3','4','5','6','7','8','9','.','0','del'];
+  return `<section class="entry2">
+    <div class="catcol">
+      <div class="cathead">البند</div>
+      <div class="catlist" role="listbox" aria-label="البند">
+        ${cats.length ? cats.map(c => `<button class="catbtn" role="option" data-pick="${esc(c.id)}" aria-selected="${c.id === ui.cat}">${esc(c.name)}</button>`).join('')
+          : `<button class="catbtn add" data-tab-go="settings">+ أضف بنداً</button>`}
+      </div>
+    </div>
+    <div class="padcol">
+      <div class="toprow">
+        <button class="chip tchip" id="cycleType" aria-label="تغيير النوع"><span class="lbl">النوع · اضغط للتغيير</span><span class="val">${ui.type ? esc(typeName(ui.type)) : 'أضف نوعاً'}</span></button>
+        <label class="chip"><span class="lbl">التاريخ</span><span class="val">${isToday ? 'اليوم' : esc(fDayShort.format(parseISO(d)))}</span>
+          <input type="date" id="selDate" value="${d}" max="${todayISO()}" aria-label="التاريخ"></label>
+      </div>
+      <textarea class="notebox" id="noteIn" rows="2" maxlength="200" placeholder="ملاحظة (اختياري)" aria-label="ملاحظة">${esc(ui.note)}</textarea>
+      <div class="calc2">
+        <button class="cf" data-f="qty" aria-pressed="${ui.field === 'qty'}"><span class="lbl">العدد</span><span class="val num${ui.qty === '' ? ' ph' : ''}">${ui.qty === '' ? '١' : fmtIn(ui.qty)}</span></button>
+        <span class="op">×</span>
+        <button class="cf big" data-f="price" aria-pressed="${ui.field === 'price'}"><span class="lbl">${qtyOn() ? 'سعر الواحد' : 'المبلغ'}</span><span class="val num${ui.price === '' ? ' ph' : ''}">${fmtIn(ui.price)}</span></button>
+      </div>
+      <div class="keypad">
+        ${keys.map(k => k === 'del'
+          ? `<button class="fn" data-k="del" aria-label="مسح">⌫</button>`
+          : k === '.' ? `<button class="fn small" data-k="." aria-label="فاصلة عشرية">فاصلة</button>`
+          : `<button class="num" data-k="${k}">${AR_DIG[k]}</button>`).join('')}
+      </div>
+      <button class="save" id="saveBtn" ${(total > 0 && ui.cat && ui.type) ? '' : 'disabled'}>${total > 0 ? `حفظ <span class="num">${money(total)}</span> ريال` : 'حفظ'}</button>
+    </div>
+  </section>`;
+}
+
+function periodLabel() {
+  const d = parseISO(ui.rDate);
+  if (ui.rMode === 'day') return ui.rDate === todayISO() ? 'اليوم' : fDay.format(d);
+  if (ui.rMode === 'month') return fMonth.format(d);
+  return arDigits(d.getFullYear());
+}
+function shift(dir) {
+  const d = parseISO(ui.rDate);
+  if (ui.rMode === 'day') d.setDate(d.getDate() + dir);
+  else if (ui.rMode === 'month') { d.setDate(1); d.setMonth(d.getMonth() + dir); }
+  else { d.setMonth(0, 1); d.setFullYear(d.getFullYear() + dir); }
+  ui.rDate = iso(d);
+}
+function atEnd() {
+  const t = todayISO();
+  if (ui.rMode === 'day') return ui.rDate >= t;
+  if (ui.rMode === 'month') return ui.rDate.slice(0, 7) >= t.slice(0, 7);
+  return ui.rDate.slice(0, 4) >= t.slice(0, 4);
+}
+
+function catRows(items) {
+  const rows = byKey(items, 'c');
+  if (!rows.length) return `<div class="empty">لا توجد مصاريف في هذه الفترة</div>`;
+  const max = rows[0][1];
+  return rows.map(([c, a]) => `<button class="row" data-cat="${esc(c)}">
+      <span class="n">${esc(catName(c))}</span><span class="a num">${money(a)}</span>
+      <span class="meter"><i style="width:${Math.max(2, a / max * 100)}%"></i></span>
+    </button>`).join('');
+}
+function itemRows(items, showDate) {
+  if (!items.length) return '';
+  return items.slice().sort((a, b) => b.d.localeCompare(a.d) || b.ts - a.ts).map(i => `<div class="item">
+      <span class="n"><b>${esc(catName(i.c))}</b></span>
+      <span class="m">${esc(typeName(i.t))}${showDate ? ' · ' + esc(fDayShort.format(parseISO(i.d))) : ''}${i.q ? ' · ' + money(i.q) + ' × ' + money(i.p) : ''}${i.n ? `<span class="note-t">${esc(i.n)}</span>` : ''}</span>
+      <span class="a num">${money(i.a)}</span>
+      <button class="x${ui.pendingDel === i.id ? ' confirm' : ''}" data-del="${esc(i.id)}" aria-label="حذف">${ui.pendingDel === i.id ? 'تأكيد الحذف' : '×'}</button>
+    </div>`).join('');
+}
+function yearBars(year, filterFn) {
+  const vals = Array(12).fill(0);
+  allItems().filter(i => i.d.slice(0, 4) === String(year) && filterFn(i)).forEach(i => { vals[+i.d.slice(5, 7) - 1] += i.a; });
+  const max = Math.max(...vals, 1);
+  const t = todayISO(); const curM = t.slice(0, 4) === String(year) ? +t.slice(5, 7) - 1 : -1;
+  return `<div class="chart"><div class="bars">${vals.map((v, i) => `<div title="${money(v)}"><i class="${v === 0 ? 'dim' : ''}${i === curM ? ' cur' : ''}" style="height:${v === 0 ? 2 : Math.max(3, v / max * 100)}%"></i><span>${MONTH_INIT[i]}</span></div>`).join('')}</div></div>`;
+}
+
+function reportsView() {
+  const items = itemsIn(ui.rMode, ui.rDate);
+  const total = sum(items);
+  const d = parseISO(ui.rDate);
+  let sub = `${arDigits(items.length)} عملية`;
+  if (ui.rMode === 'month') {
+    const days = ui.rDate.slice(0, 7) === todayISO().slice(0, 7) ? new Date().getDate() : new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    sub += ` · متوسط يومي ${money(total / days)}`;
+  } else if (ui.rMode === 'year') {
+    const mCount = String(d.getFullYear()) === todayISO().slice(0, 4) ? new Date().getMonth() + 1 : 12;
+    sub += ` · متوسط شهري ${money(total / mCount)}`;
+  }
+  const kLabel = {day: 'مصروف اليوم', month: 'مصروف الشهر', year: 'مصروف السنة'}[ui.rMode];
+  const typeRows = byKey(items, 't');
+  return `<section class="view">
+    <div class="seg" role="group">
+      ${[['day','يومي'],['month','شهري'],['year','سنوي']].map(([m, l]) => `<button data-mode="${m}" aria-pressed="${ui.rMode === m}">${l}</button>`).join('')}
+    </div>
+    <div class="period">
+      <button id="prev" aria-label="السابق">›</button>
+      <span class="pl">${esc(periodLabel())}</span>
+      <button id="next" aria-label="التالي" ${atEnd() ? 'disabled' : ''}>‹</button>
+    </div>
+    <div class="total"><span class="k">${kLabel}</span><span class="v num">${money(total)} <small>ريال</small></span><span class="sub num">${sub}</span></div>
+    ${ui.rMode === 'year' ? yearBars(d.getFullYear(), () => true) : ''}
+    <h2>حسب البند · اضغط على البند لتفاصيله</h2>
+    <div class="list">${catRows(items)}</div>
+    ${typeRows.length ? `<h2>حسب النوع</h2><div class="list">${typeRows.map(([t, a]) => `<div class="row"><span class="n">${esc(typeName(t))}</span><span class="a num">${money(a)}</span></div>`).join('')}</div>` : ''}
+    ${ui.rMode !== 'year' && items.length ? `<h2>العمليات</h2><div class="list">${itemRows(items, ui.rMode === 'month')}</div>` : ''}
+    <p class="status">محفوظ على هذا الجهاز · يعمل بدون إنترنت</p>
+  </section>`;
+}
+
+function renderSheet() {}
+function detailView() {
+  const c = ui.sheetCat;
+  const d = parseISO(ui.rDate);
+  const ym = ui.rDate.slice(0, 7), y = ui.rDate.slice(0, 4);
+  const mine = allItems().filter(i => i.c === c);
+  const mItems = mine.filter(i => i.d.slice(0, 7) === ym);
+  const yItems = mine.filter(i => i.d.slice(0, 4) === y);
+  return `<section class="view detail">
+      <header class="dhead"><button class="back" id="closeSheet" aria-label="رجوع للتقارير">› التقارير</button><h3>${esc(catName(c))}</h3></header>
+      <div class="pair">
+        <div class="total"><span class="k">شهر ${esc(fMonthOnly.format(d))}</span><span class="v num">${money(sum(mItems))}</span><span class="sub num">${arDigits(mItems.length)} عملية</span></div>
+        <div class="total"><span class="k">سنة ${arDigits(y)}</span><span class="v num">${money(sum(yItems))}</span><span class="sub num">${arDigits(yItems.length)} عملية</span></div>
+      </div>
+      <h2>الصرف الشهري خلال ${arDigits(y)}</h2>
+      ${yearBars(+y, i => i.c === c)}
+      ${mItems.length ? `<h2>عمليات ${esc(fMonthOnly.format(d))}</h2><div class="list">${itemRows(mItems, true)}</div>` : ''}
+    </section>`;
+}
+
+function settingsView() {
+  const block = (title, key, ph) => `<h2>${title}</h2>
+    <div class="list">
+      ${settings[key].filter(x => !x.archived).map(x => `<div class="srow">
+        <input id="ed-${esc(x.id)}" data-edit="${key}" data-id="${esc(x.id)}" value="${esc(x.name)}" aria-label="تعديل ${esc(x.name)}">
+        <button class="x${ui.pendingDel === x.id ? ' confirm' : ''}" data-rm="${key}" data-id="${esc(x.id)}" aria-label="حذف">${ui.pendingDel === x.id ? 'حذف' : '×'}</button>
+      </div>`).join('') || `<div class="empty">لا يوجد شيء بعد</div>`}
+      <form class="addrow" data-add="${key}"><input id="add-${key}" placeholder="${ph}" autocomplete="off"><button type="submit">إضافة</button></form>
+    </div>`;
+  return `<section class="view">
+    <div class="verbar"><span>إصدار التطبيق: <b>رقم ${arDigits(APP_VERSION)}</b></span><button id="forceUpdate" class="upd">تحديث التطبيق</button></div>
+    ${block('البنود', 'cats', 'بند جديد، مثل: مدارس')}
+    ${block('الأنواع', 'types', 'نوع جديد، مثل: ضروري')}
+    <p class="note">اضغط على أي اسم لتعديله. حذف بند يخفيه من القائمة المنسدلة فقط، وتبقى مصاريفه السابقة في التقارير.</p>
+    <h2>نسخة احتياطية</h2>
+    <div class="btns"><button class="btn2" id="exportBtn">حفظ نسخة</button><label class="btn2" style="text-align:center">استرجاع نسخة<input type="file" id="importFile" accept=".json,application/json" hidden></label></div>
+    <p class="note">بياناتك محفوظة على جوالك فقط. احفظ نسخة كل فترة في تطبيق الملفات، وتقدر تسترجعها لو غيّرت الجوال.</p>
+    
+  </section>`;
+}
+
+// ---------- events ----------
+document.getElementById('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tab]'); if (!b) return;
+  ui.tab = b.dataset.tab; ui.pendingDel = null; ui.sheetCat = null;
+  if (ui.tab === 'entry') ui.date = null;
+  render(); $('#main').scrollTop = 0;
+});
+
+document.addEventListener('click', e => {
+  const k = e.target.closest('[data-k]');
+  if (k) {
+    const v = k.dataset.k, f = ui.field; let a = ui[f];
+    if (v === 'del') a = a.slice(0, -1);
+    else if (v === '.') { if (!a.includes('.')) a = (a || '0') + '.'; }
+    else {
+      if (a.includes('.') && a.split('.')[1].length >= 2) return;
+      if (a.replace('.', '').length >= 9) return;
+      a = a === '0' ? v : a + v;
+    }
+    ui[f] = a; render(); return;
+  }
+  const cf = e.target.closest('[data-f]');
+  if (cf) { ui.field = cf.dataset.f; render(); return; }
+  const pick = e.target.closest('[data-pick]');
+  if (pick) { ui.cat = pick.dataset.pick; ls.set('m.lastCat', ui.cat); render(); return; }
+  if (e.target.closest('#cycleType')) {
+    const ts = activeTypes(); if (!ts.length) { ui.tab = 'settings'; render(); return; }
+    const i = ts.findIndex(t => t.id === ui.type); ui.type = ts[(i + 1) % ts.length].id; ls.set('m.lastType', ui.type); render(); return;
+  }
+  const go = e.target.closest('[data-tab-go]');
+  if (go) { ui.tab = go.dataset.tabGo; render(); return; }
+  if (e.target.closest('#saveBtn')) { addExpense(); return; }
+  const mode = e.target.closest('[data-mode]');
+  if (mode) { ui.rMode = mode.dataset.mode; ui.rDate = todayISO(); render(); return; }
+  if (e.target.closest('#prev')) { shift(-1); render(); return; }
+  if (e.target.closest('#next')) { shift(1); render(); return; }
+  const cr = e.target.closest('[data-cat]');
+  if (cr) { ui.sheetCat = cr.dataset.cat; ui.pendingDel = null; ui.reportScroll = $('#main').scrollTop; render(); $('#main').scrollTop = 0; return; }
+  if (e.target.closest('#closeSheet')) { ui.sheetCat = null; render(); $('#main').scrollTop = ui.reportScroll || 0; return; }
+  const del = e.target.closest('[data-del]');
+  if (del) {
+    const id = del.dataset.del;
+    if (ui.pendingDel !== id) { ui.pendingDel = id; render(); return; }
+    ui.pendingDel = null; removeExpense(id); return;
+  }
+  const rm = e.target.closest('[data-rm]');
+  if (rm) {
+    const id = rm.dataset.id, key = rm.dataset.rm;
+    if (ui.pendingDel !== id) { ui.pendingDel = id; render(); return; }
+    ui.pendingDel = null;
+    const x = settings[key].find(z => z.id === id); if (x) x.archived = true;
+    saveSettings(); render(); toast('تم الحذف'); return;
+  }
+  if (ui.pendingDel && !e.target.closest('.x')) { ui.pendingDel = null; render(); }
+});
+
+document.addEventListener('change', e => {
+  if (e.target.id === 'selCat') { ui.cat = e.target.value; ls.set('m.lastCat', ui.cat); render(); }
+  else if (e.target.id === 'selType') { ui.type = e.target.value; ls.set('m.lastType', ui.type); render(); }
+  else if (e.target.id === 'selDate') { const v = e.target.value; ui.date = v && v <= todayISO() ? v : null; render(); }
+  else if (e.target.dataset.edit) {
+    const key = e.target.dataset.edit, id = e.target.dataset.id, v = e.target.value.trim();
+    const x = settings[key].find(z => z.id === id);
+    if (x && v && v !== x.name) { x.name = v; saveSettings(); toast('تم التعديل'); }
+    else if (x) e.target.value = x.name;
+  }
+});
+document.addEventListener('scroll', e => { if (e.target.classList && e.target.classList.contains('catlist')) ui.catScroll = e.target.scrollTop; }, true);
+document.addEventListener('input', e => { if (e.target.id === 'noteIn') ui.note = e.target.value; });
+document.addEventListener('keydown', e => {
+  if (e.target.dataset && e.target.dataset.edit && e.key === 'Enter') e.target.blur();
+  if (ui.tab === 'entry' && !/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) {
+    if (/^[0-9.]$/.test(e.key)) document.querySelector(`[data-k="${e.key}"]`)?.click();
+    else if (e.key === 'Backspace') document.querySelector('[data-k="del"]')?.click();
+    else if (e.key === 'Enter') addExpense();
+  }
+});
+document.addEventListener('submit', e => {
+  const f = e.target.closest('[data-add]'); if (!f) return;
+  e.preventDefault();
+  const key = f.dataset.add, inp = f.querySelector('input'), v = inp.value.trim();
+  if (!v) return;
+  const existing = settings[key].find(z => z.name === v);
+  if (existing) { if (!existing.archived) { toast('موجود مسبقاً'); return; } existing.archived = false; }
+  else settings[key].push({id: (key === 'cats' ? 'c' : 't') + uid(), name: v});
+  saveSettings(); render(); toast('تمت الإضافة');
+  const again = document.getElementById('add-' + key); if (again) again.focus();
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#exportBtn')) return;
+  const blob = new Blob([JSON.stringify({app: 'masarifi', v: 1, settings, months}, null, 1)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'masarifi-' + todayISO() + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+document.addEventListener('change', e => {
+  if (e.target.id !== 'importFile' || !e.target.files[0]) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (data.app !== 'masarifi' || !data.settings || !data.months) throw 0;
+      settings = data.settings; months = data.months;
+      ls.set('m.settings', settings); ls.set('m.months', months);
+      render(); toast('تم الاسترجاع');
+    } catch { toast('الملف غير صالح'); }
+  };
+  r.readAsText(e.target.files[0]);
+});
+
+function addExpense() {
+  const a = effAmount();
+  if (!(a > 0) || !ui.cat || !ui.type) return;
+  const d = ui.date || todayISO(), m = d.slice(0, 7);
+  const item = {id: uid(), a: Math.round(a * 100) / 100, c: ui.cat, t: ui.type, d, ts: Date.now()};
+  const note = ui.note.trim(); if (note) item.n = note;
+  if (qtyOn() && parseFloat(ui.qty) !== 1) { item.q = parseFloat(ui.qty); item.p = parseFloat(ui.price); }
+  (months[m] = months[m] || []).push(item);
+  saveMonth(m);
+  if (!ls.get('m.settingsSaved', false)) { ls.set('m.settingsSaved', true); saveSettings(); }
+  ui.amount = ''; ui.note = ''; ui.qty = ''; ui.price = ''; ui.field = 'price'; ui.date = null;
+  render(); toast('تم الحفظ · ' + money(item.a) + ' ريال');
+}
+function removeExpense(id) {
+  for (const m of Object.keys(months)) {
+    const i = months[m].findIndex(x => x.id === id);
+    if (i >= 0) { months[m].splice(i, 1); saveMonth(m); break; }
+  }
+  render(); toast('تم الحذف');
+}
+
+render();
+async function hardUpdate(silent) {
+  try {
+    if (!silent) toast('جارٍ التحديث…');
+    if (window.caches) { for (const k of await caches.keys()) await caches.delete(k); }
+    if (navigator.serviceWorker) { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); }
+  } catch {}
+  location.replace(location.pathname + '?u=' + Date.now());
+}
+document.addEventListener('click', e => { if (e.target.closest('#forceUpdate')) { if (!navigator.onLine) { toast('تحتاج اتصال إنترنت للتحديث'); return; } hardUpdate(false); } });
+// When online, check for a newer version and switch to it automatically.
+if (navigator.onLine) fetch('version.json?t=' + Date.now(), {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(v => {
+  if (v && v.version > APP_VERSION && !sessionStorage.getItem('upd' + v.version)) { try { sessionStorage.setItem('upd' + v.version, '1'); } catch {} hardUpdate(true); }
+}).catch(() => {});
+if (location.search.includes('u=')) history.replaceState(null, '', location.pathname);
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).then(r => r.update()).catch(() => {}));
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
+})();
+</script>
+
+</body>
+</html>
